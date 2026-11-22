@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayu Parmar – Firmware Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: the profile reads like a component datasheet — boot log hero, spec table, revision history, pinout of skills. */
+:root {
+  --paper: #f3f5f4;
+  --panel: #ffffff;
+  --ink: #14202b;
+  --muted: #5b6873;
+  --line: #d5dcdf;
+  --copper: #b35a1f;
+  --mask: #0f3d3a;
+  --mask-ink: #d9efe9;
+  --display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1519; --panel: #161e23; --ink: #e6ecef; --muted: #98a6ae;
+    --line: #2a363d; --copper: #e08a4c; --mask: #0b2b29; --mask-ink: #bfe6dc;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1519; --panel: #161e23; --ink: #e6ecef; --muted: #98a6ae;
+  --line: #2a363d; --copper: #e08a4c; --mask: #0b2b29; --mask-ink: #bfe6dc;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.sheet {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+/* Header strip like a datasheet header */
+.docbar {
+  display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  padding: 10px 24px; border-bottom: 1px solid var(--line);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.docbar b { color: var(--copper); font-weight: 600; }
+
+/* Hero */
+.hero {
+  display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px;
+  padding: 36px 24px 32px;
+}
+.part { font-family: var(--mono); font-size: 13px; color: var(--copper); letter-spacing: .08em; }
+h1 {
+  font-family: var(--display); font-stretch: 125%; font-weight: 800;
+  font-size: clamp(44px, 7vw, 76px); line-height: .92; margin: 10px 0 14px;
+  letter-spacing: -.01em; text-wrap: balance;
+}
+.role { font-family: var(--display); font-stretch: 75%; font-weight: 600; font-size: 22px; margin: 0 0 14px; }
+.thesis { max-width: 48ch; color: var(--muted); margin: 0 0 22px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  font-family: var(--mono); font-size: 13px; text-decoration: none;
+  padding: 10px 14px; border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  cursor: pointer;
+}
+.btn.primary { background: var(--ink); color: var(--panel); }
+.btn:hover { border-color: var(--copper); color: var(--copper); }
+.btn.primary:hover { background: var(--copper); color: #fff; }
+
+.console {
+  background: var(--mask); color: var(--mask-ink);
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  padding: 18px 18px 14px; border-radius: 4px; align-self: start;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  overflow-x: auto;
+}
+.console .ttl { display: flex; gap: 6px; margin-bottom: 10px; opacity: .7; font-size: 11px; }
+.console .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; opacity: .5; }
+.console p { margin: 0; white-space: pre; }
+.console .ts { opacity: .55; }
+.console .ok { color: #8fe3b0; }
+.console .hl { color: #f3b27c; }
+.cursor { display: inline-block; width: .6em; height: 1em; background: var(--mask-ink); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.boot p { animation: rise .35s ease-out both; }
+@keyframes rise { from { opacity: .15; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+/* Sections */
+section { padding: 30px 24px; border-top: 1px solid var(--line); }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+.sec-no { font-family: var(--mono); font-size: 12px; color: var(--copper); }
+h2 {
+  font-family: var(--display); font-stretch: 112%; font-weight: 750;
+  font-size: 26px; margin: 0; text-wrap: balance;
+}
+.sec-note { font-size: 14px; color: var(--muted); margin: -8px 0 18px; max-width: 70ch; }
+
+/* Spec table */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: color-mix(in srgb, var(--line) 35%, transparent); }
+td.val { font-family: var(--display); font-stretch: 110%; font-weight: 750; font-size: 19px; color: var(--copper); white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.param { font-weight: 600; }
+td.cond { color: var(--muted); }
+
+/* Products */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip {
+  font-family: var(--mono); font-size: 12px; padding: 6px 10px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.chip:hover { border-color: var(--copper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.card {
+  border: 1px solid var(--line); padding: 18px; display: flex; flex-direction: column; gap: 10px;
+  transition: opacity .2s, border-color .2s; background: var(--panel); position: relative;
+}
+.card::before {
+  content: ""; position: absolute; left: -1px; top: 18px; width: 3px; height: 28px; background: var(--copper);
+}
+.card.dim { opacity: .28; }
+.card.match { border-color: var(--copper); }
+.card h3 { font-family: var(--display); font-stretch: 100%; font-weight: 700; font-size: 18px; margin: 0; }
+.card .where { font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.card p { margin: 0; font-size: 14.5px; }
+.card .metric { font-family: var(--display); font-stretch: 110%; font-weight: 750; color: var(--copper); font-size: 17px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.tag { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border: 1px solid var(--line); color: var(--muted); }
+
+/* Revision history */
+.rev td:first-child { font-family: var(--mono); color: var(--copper); white-space: nowrap; }
+.rev td:nth-child(2) { font-family: var(--mono); font-size: 13px; white-space: nowrap; color: var(--muted); }
+.rev .org { font-weight: 700; }
+.rev ul { margin: 6px 0 0; padding-left: 18px; }
+.rev li { margin: 2px 0; font-size: 14.5px; }
+
+/* Pinout */
+.pinout { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.pins { border: 1px solid var(--line); }
+.pins h3 { margin: 0; padding: 8px 12px; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; background: var(--mask); color: var(--mask-ink); font-weight: 600; }
+.pins ol { list-style: none; margin: 0; padding: 0; counter-reset: pin; }
+.pins li { counter-increment: pin; display: flex; gap: 10px; padding: 6px 12px; border-top: 1px solid var(--line); font-size: 14px; }
+.pins li::before { content: counter(pin, decimal-leading-zero); font-family: var(--mono); font-size: 11px; color: var(--copper); padding-top: 2px; }
+
+/* Lists */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.list { list-style: none; padding: 0; margin: 0; }
+.list li { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.list .k { font-family: var(--mono); font-size: 11.5px; color: var(--copper); display: block; text-transform: uppercase; letter-spacing: .05em; }
+
+/* Contact */
+.contact { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.ct { border: 1px solid var(--line); padding: 14px; }
+.ct .k { font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.ct .v { font-weight: 600; word-break: break-word; }
+.toast { font-family: var(--mono); font-size: 12px; color: var(--copper); min-height: 1.2em; margin-top: 10px; }
+
+footer { font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 14px 24px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; }
+  .two { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .wrap { padding: 0 12px; }
+  .hero, section { padding-left: 16px; padding-right: 16px; }
+  .console { font-size: 11.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot p, .cursor { animation: none; }
+  .card { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<main class="sheet">
+
+  <div class="docbar">
+    <span><b>AP-FW-07</b> · Engineer profile · datasheet</span>
+    <span>Rev 2026.11 · Hyderabad, India</span>
+  </div>
+
+  <header class="hero">
+    <div>
+      <div class="part">EMBEDDED FIRMWARE · 7+ YEARS · TEAM LEAD</div>
+      <h1>Ayu<br>Parmar</h1>
+      <p class="role">Senior Embedded Firmware Engineer</p>
+      <p class="thesis">I build firmware for connected devices that have to keep working after they leave the factory: RTOS products on ARM Cortex-M, low-level drivers, BLE and LTE connectivity, and over-the-air updates that roll back instead of bricking.</p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="copyEmail">Copy email</button>
+        <a class="btn" href="https://linkedin.com/in/ayuparmar">LinkedIn</a>
+        <a class="btn" href="https://github.com/ayuparmar">GitHub</a>
+        <a class="btn" href="#shipped">See shipped products</a>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="console" aria-label="Profile summary written as a firmware boot log">
+      <div class="ttl"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;uart0 @ 115200</div>
+      <div class="boot">
+        <p><span class="ts">[0.000]</span> ayu-fw booting…</p>
+        <p style="animation-delay:.12s"><span class="ts">[0.004]</span> cpu: Cortex-M · STM32 · nRF52840 · ESP32</p>
+        <p style="animation-delay:.24s"><span class="ts">[0.011]</span> rtos: FreeRTOS + Zephyr scheduler <span class="ok">started</span></p>
+        <p style="animation-delay:.36s"><span class="ts">[0.019]</span> drv: i2c spi uart dma flash adc <span class="ok">ok</span></p>
+        <p style="animation-delay:.48s"><span class="ts">[0.026]</span> sns: imu dht11 sht21 bme gnss <span class="ok">ok</span></p>
+        <p style="animation-delay:.60s"><span class="ts">[0.033]</span> net: ble wifi lte rf-mesh mqtt/tls <span class="ok">up</span></p>
+        <p style="animation-delay:.72s"><span class="ts">[0.041]</span> ota: image verified, rollback <span class="ok">armed</span></p>
+        <p style="animation-delay:.84s"><span class="ts">[0.048]</span> fleet: <span class="hl">1,000,000+</span> units in the field</p>
+        <p style="animation-delay:.96s"><span class="ts">[0.055]</span> team: <span class="hl">20</span> firmware engineers online</p>
+        <p style="animation-delay:1.08s"><span class="ts">[0.060]</span> ready&gt; <span class="cursor"></span></p>
+      </div>
+    </div>
+  </header>
+
+  <section id="specs">
+    <div class="sec-head"><span class="sec-no">§1</span><h2>Key characteristics</h2></div>
+    <p class="sec-note">Measured in production and field trials, not in the lab.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Parameter</th><th>Value</th><th>Conditions</th></tr></thead>
+        <tbody>
+          <tr><td class="param">Units shipped</td><td class="val">1,000,000+</td><td class="cond">Payment Sound Box, ARM Cortex-M + LTE; zero critical failures in a 6-month field trial</td></tr>
+          <tr><td class="param">Bricked devices</td><td class="val">−40%</td><td class="cond">Secure FOTA with pre-update health checks and rollback, 500+ devices</td></tr>
+          <tr><td class="param">Field returns</td><td class="val">−25%</td><td class="cond">MISRA C safe-mode boot across products</td></tr>
+          <tr><td class="param">Battery life</td><td class="val">+35%</td><td class="cond">BLE wearable on nRF52840: custom GATT, tuned connection intervals, low-power state machine</td></tr>
+          <tr><td class="param">Board bring-up time</td><td class="val">−30%</td><td class="cond">Reusable I2C / SPI / UART / flash drivers on in-house PCBAs</td></tr>
+          <tr><td class="param">OTA downtime</td><td class="val">−60%</td><td class="cond">CI/CD pipeline with staged rollout and automatic rollback, 200+ EV stations</td></tr>
+          <tr><td class="param">System uptime</td><td class="val">99.7%</td><td class="cond">Multi-threaded embedded Linux, validated with hardware-in-the-loop testing</td></tr>
+          <tr><td class="param">Team size</td><td class="val">1 → 20</td><td class="cond">Firmware engineers hired, mentored and led at Vanix Technologies</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="shipped">
+    <div class="sec-head"><span class="sec-no">§2</span><h2>Shipped hardware</h2></div>
+    <p class="sec-note">Pick a skill to see where it was used.</p>
+    <div class="filters" id="filters" role="group" aria-label="Filter products by skill">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" type="button" data-f="rtos" aria-pressed="false">RTOS</button>
+      <button class="chip" type="button" data-f="drivers" aria-pressed="false">Drivers &amp; buses</button>
+      <button class="chip" type="button" data-f="ble" aria-pressed="false">BLE</button>
+      <button class="chip" type="button" data-f="ota" aria-pressed="false">OTA</button>
+      <button class="chip" type="button" data-f="sensors" aria-pressed="false">Sensors</button>
+      <button class="chip" type="button" data-f="linux" aria-pressed="false">Embedded Linux</button>
+      <button class="chip" type="button" data-f="cell" aria-pressed="false">LTE / cloud</button>
+    </div>
+    <div class="grid" id="cards">
+      <article class="card" data-t="rtos drivers ota cell">
+        <span class="where">Vanix Technologies · FinTech</span>
+        <h3>Payment Sound Box</h3>
+        <p>Payment-event and audio announcement firmware on an ARM Cortex-M MCU with LTE, plus factory flashing, provisioning and end-of-line test firmware with the EMS partner.</p>
+        <span class="metric">1,000,000+ units · patent filed</span>
+        <div class="tags"><span class="tag">Cortex-M</span><span class="tag">LTE</span><span class="tag">FOTA</span><span class="tag">EVT/DVT/PVT</span></div>
+      </article>
+      <article class="card" data-t="rtos sensors cell drivers">
+        <span class="where">Vanix Technologies · Animal health</span>
+        <h3>MyBovine</h3>
+        <p>Livestock health monitoring: IMU sensor nodes on nRF with on-device signal processing, an RF mesh, and an nRF + Quectel LTE gateway to cloud and app.</p>
+        <span class="metric">91% activity classification · alerts &lt; 60 s</span>
+        <div class="tags"><span class="tag">nRF</span><span class="tag">IMU</span><span class="tag">RF mesh</span><span class="tag">LTE gateway</span></div>
+      </article>
+      <article class="card" data-t="rtos ble drivers">
+        <span class="where">Vanix Technologies · Wearable</span>
+        <h3>BLE body-worn wearable</h3>
+        <p>Custom GATT profiles, tuned connection intervals and a low-power state machine on nRF52840 with Zephyr / nRF Connect SDK.</p>
+        <span class="metric">+35% battery life</span>
+        <div class="tags"><span class="tag">nRF52840</span><span class="tag">Zephyr</span><span class="tag">BLE / GATT</span><span class="tag">Low power</span></div>
+      </article>
+      <article class="card" data-t="rtos sensors cell drivers">
+        <span class="where">Vanix Technologies · AgriTech</span>
+        <h3>DigiKhet AG-C1</h3>
+        <p>Real-time GNSS processing with a computational-geometry algorithm to measure farm plots of 10–500 acres, with sensor-to-cloud reporting over MQTT.</p>
+        <span class="metric">±2% field area · &lt; 3 s reporting</span>
+        <div class="tags"><span class="tag">GNSS</span><span class="tag">MQTT</span><span class="tag">STM32</span></div>
+      </article>
+      <article class="card" data-t="linux ota ble cell">
+        <span class="where">RaceEnergy · EV infrastructure</span>
+        <h3>Battery-swapping stations</h3>
+        <p>Multi-threaded embedded Linux on Quectel EC20 + Renesas with CAN battery (BMS) telemetry, GPS and MQTT; CI/CD with staged rollout and automatic rollback; encrypted BLE to IEC 62443.</p>
+        <span class="metric">200+ stations · 99.7% uptime · −60% OTA downtime</span>
+        <div class="tags"><span class="tag">Embedded Linux</span><span class="tag">CAN</span><span class="tag">HIL</span><span class="tag">Docker CI</span></div>
+      </article>
+      <article class="card" data-t="sensors ota linux drivers">
+        <span class="where">Smart City Living Lab · IIIT Hyderabad</span>
+        <h3>Urban sensor network</h3>
+        <p>49 low-power ESP32 nodes over 4 km² with Wi-Fi, MQTT/HTTP uplink and OTA; DHT11, SHT21 and BME temperature and humidity sensing; HVAC control with safety interlocks.</p>
+        <span class="metric">±5% accuracy · −45% HVAC over-cycling</span>
+        <div class="tags"><span class="tag">ESP32</span><span class="tag">Wi-Fi</span><span class="tag">I2C sensors</span><span class="tag">2 patents</span></div>
+      </article>
+    </div>
+  </section>
+  <section id="history">
+    <div class="sec-head"><span class="sec-no">§3</span><h2>Revision history</h2></div>
+    <div class="tbl-wrap">
+      <table class="rev">
+        <thead><tr><th>Rev</th><th>Date</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td>4.0</td><td>Dec 2024 – now</td><td><span class="org">Firmware Engineering Lead, heading engineering · Vanix Technologies, Hyderabad</span>
+            <ul><li>Own firmware for three connected products from requirements and board bring-up to mass production.</li>
+            <li>Built the firmware team from 1 to 20 engineers and set up an AI team; run code and design reviews, mentoring and Agile sprints.</li>
+            <li>Raise risks, gaps and dependencies early with hardware, QA, manufacturing and global vendors (Nordic, Quectel, ST).</li></ul></td></tr>
+          <tr><td>3.0</td><td>Mar 2023 – Dec 2024</td><td><span class="org">Embedded Firmware Engineer · RaceEnergy, Hyderabad</span>
+            <ul><li>Embedded Linux firmware and CI/CD with staged rollout for a fleet of 200+ EV battery-swapping stations.</li></ul></td></tr>
+          <tr><td>2.0</td><td>Aug 2020 – Aug 2022</td><td><span class="org">Embedded Engineer, Team Lead · Smart City Living Lab, IIIT Hyderabad</span>
+            <ul><li>Led a team of 8 through embedded Linux bring-up, device drivers and system validation; deployed a 49-node sensor network.</li></ul></td></tr>
+          <tr><td>1.0</td><td>Nov 2017 – Jun 2019</td><td><span class="org">Technical Co-Founder &amp; Head of Engineering · Viveins Technologies, Lucknow</span>
+            <ul><li>Built the engineering team for control-system hardware; took 2 products to client sign-off and first revenue.</li></ul></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="pinout">
+    <div class="sec-head"><span class="sec-no">§4</span><h2>Pinout</h2></div>
+    <div class="pinout">
+      <div class="pins"><h3>Core</h3><ol><li>Embedded C, C++</li><li>Python, MicroPython, shell</li><li>ARM Cortex-M4 / M33</li><li>STM32 F4/H7, nRF52840, ESP32, Renesas</li></ol></div>
+      <div class="pins"><h3>RTOS &amp; OS</h3><ol><li>FreeRTOS</li><li>Zephyr / nRF Connect SDK</li><li>ESP-IDF</li><li>Multi-threaded embedded Linux</li></ol></div>
+      <div class="pins"><h3>Drivers &amp; buses</h3><ol><li>I2C, SPI, UART with interrupts and DMA</li><li>Flash, GPIO, timers, RTC, ADC</li><li>CAN</li><li>Board bring-up, schematic review</li></ol></div>
+      <div class="pins"><h3>Connectivity</h3><ol><li>BLE / GATT</li><li>Wi-Fi, LTE (Quectel), RF mesh</li><li>TCP/IP, MQTT, HTTPS / TLS</li><li>GNSS, NFC</li></ol></div>
+      <div class="pins"><h3>Reliability</h3><ol><li>Secure FOTA, staged rollout, rollback</li><li>Safe-mode boot</li><li>HIL testing, CI/CD</li><li>MISRA C, IEC 61508 / 62304 / 62443</li></ol></div>
+      <div class="pins"><h3>Bench</h3><ol><li>JTAG / SWD, ST-Link</li><li>Oscilloscope</li><li>Logic analyser</li><li>STM32CubeIDE, IAR, Keil</li></ol></div>
+    </div>
+  </section>
+
+  <section id="record">
+    <div class="sec-head"><span class="sec-no">§5</span><h2>Patents, papers and education</h2></div>
+    <div class="two">
+      <ul class="list">
+        <li><span class="k">Patent · granted 2024</span>Air Quality Monitoring System (383624-001)</li>
+        <li><span class="k">Patent · granted 2024</span>Smart Noise Pollution Monitoring System (389013-001)</li>
+        <li><span class="k">Patent · filed 2026</span>Payment Event Notification Device (202641008599)</li>
+        <li><span class="k">Patent · filed 2021</span>Low-energy AQ Monitoring Device (202141021963)</li>
+        <li><span class="k">Publications · 6</span>First author, Frontiers in IoT (2024); co-author on 5 IEEE / FiCloud papers</li>
+      </ul>
+      <ul class="list">
+        <li><span class="k">2021 – 2023</span>MS by Research, Electronics &amp; Communication Engineering, IIIT Hyderabad</li>
+        <li><span class="k">2019 – 2020</span>PG Diploma, Embedded System Design, CDAC Hyderabad</li>
+        <li><span class="k">2012 – 2016</span>B.Tech, Electronics &amp; Communication Engineering, Dr. A.P.J. Abdul Kalam Technical University</li>
+        <li><span class="k">Recognition</span>Winner, IoT Hackathon, University of Helsinki · Finalist, KETI oneM2M Hackathon, Korea</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="sec-head"><span class="sec-no">§6</span><h2>Contact</h2></div>
+    <div class="contact">
+      <div class="ct"><div class="k">Email</div><div class="v"><a href="mailto:ayuparmar@gmail.com">ayuparmar@gmail.com</a></div></div>
+      <div class="ct"><div class="k">Phone</div><div class="v">+91 98918 64634</div></div>
+      <div class="ct"><div class="k">LinkedIn</div><div class="v"><a href="https://linkedin.com/in/ayuparmar">linkedin.com/in/ayuparmar</a></div></div>
+      <div class="ct"><div class="k">GitHub</div><div class="v"><a href="https://github.com/ayuparmar">github.com/ayuparmar</a></div></div>
+    </div>
+  </section>
+
+  <footer><span>AP-FW-07 · Ayu Parmar</span><span>Open to senior firmware roles · India &amp; relocation</span></footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var chips = document.querySelectorAll('#filters .chip');
+  var cards = document.querySelectorAll('#cards .card');
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () {
+      var f = c.getAttribute('data-f');
+      chips.forEach(function (x) { x.setAttribute('aria-pressed', x === c ? 'true' : 'false'); });
+      cards.forEach(function (card) {
+        var tags = card.getAttribute('data-t').split(' ');
+        var hit = f === 'all' || tags.indexOf(f) !== -1;
+        card.classList.toggle('dim', !hit);
+        card.classList.toggle('match', hit && f !== 'all');
+      });
+    });
+  });
+
+  var btn = document.getElementById('copyEmail');
+  var toast = document.getElementById('toast');
+  btn.addEventListener('click', function () {
+    var email = 'ayuparmar@gmail.com';
+    function done(msg) { toast.textContent = msg; }
+    try {
+      navigator.clipboard.writeText(email).then(function () {
+        done('Copied: ' + email);
+      }, function () { done('Email: ' + email); });
+    } catch (e) { done('Email: ' + email); }
+  });
+})();
+</script>
+</body>
+</html>
